@@ -58,13 +58,19 @@ public class JoomeoTest {
             /**
              * system.listMethods
              */
-            HashMap result = (HashMap) call("joomeo.session.init", new HashMap<String, String>() {{
+            final HashMap result = (HashMap) call("joomeo.session.init", new HashMap<String, String>() {{
 	            put("apikey", config.getProperty("apiKey"));
 	            put("spacename", config.getProperty("spacename"));
 	            put("login", config.getProperty("login"));
 	            put("password", config.getProperty("password"));
 			}});
             log.info(result);
+            
+            Object[] result2 = (Object[]) call("joomeo.user.getCollectionList", new HashMap<String, String>() {{
+	            put("apikey", config.getProperty("apiKey"));
+	            put("sessionid", ""+result.get("sessionid"));
+			}});
+            log.info(new HashSet(Arrays.asList(result2)));
             
         } catch (XmlRpcException e) {
         	log.error(e.getMessage(), e);
