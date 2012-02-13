@@ -10,6 +10,7 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 import org.apache.log4j.Logger;
@@ -58,19 +59,45 @@ public class JoomeoTest {
             /**
              * system.listMethods
              */
-            final HashMap result = (HashMap) call("joomeo.session.init", new HashMap<String, String>() {{
+            final HashMap session = (HashMap) call("joomeo.session.init", new HashMap<String, String>() {{
 	            put("apikey", config.getProperty("apiKey"));
 	            put("spacename", config.getProperty("spacename"));
 	            put("login", config.getProperty("login"));
 	            put("password", config.getProperty("password"));
 			}});
-            log.info(result);
+            log.info(session);
             
-            Object[] result2 = (Object[]) call("joomeo.user.getCollectionList", new HashMap<String, String>() {{
+            Object[] albums = (Object[]) call("joomeo.user.getAlbumList", new HashMap<String, String>() {{
 	            put("apikey", config.getProperty("apiKey"));
-	            put("sessionid", ""+result.get("sessionid"));
+	            put("sessionid", ""+session.get("sessionid"));
+	            put("orderby", "name");
 			}});
-            log.info(new HashSet(Arrays.asList(result2)));
+            for(final Object o: Arrays.asList(albums)) {
+            	log.info(((Map) o).get("label"));
+            	
+                Object[] files = (Object[]) call("joomeo.user.album.getFilesList", new HashMap<String, String>() {{
+    	            put("apikey", config.getProperty("apiKey"));
+    	            put("sessionid", ""+session.get("sessionid"));
+    	            put("albumid", ((Map) o).get("albumid")+"");
+    			}});
+                // log.info(new HashSet(Arrays.asList(files)));
+                
+                for(final Object file: Arrays.asList(files)) {
+                	final String fileid = ((Map) file).get("fileid")+"";
+                	log.info(fileid);
+                	log.info("http://api.joomeo.com/ﬁle.php?apikey="+config.getProperty("apiKey")+"&sessionid="+session.get("sessionid")+"&ﬁleid="+fileid+"&type=small");                	
+
+                	/*
+                    final HashMap photo = (HashMap) call("joomeo.user.file.getBinary", new HashMap<String, String>() {{
+        	            put("apikey", config.getProperty("apiKey"));
+        	            put("sessionid", ""+session.get("sessionid"));
+        	            put("fileid", fileid);
+        	            put("type", "small");
+        			}});                	
+                    log.info(photo);
+                    */
+                }
+            }
             
         } catch (XmlRpcException e) {
         	log.error(e.getMessage(), e);
